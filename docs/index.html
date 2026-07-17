@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stick.ai — Tour-level practice for your Mevo+</title>
+<meta name="description" content="Turn your FlightScope Mevo+ into a TrackMan-level practice simulator. Real ball flight, strokes-gained scoring, and a practice handicap.">
+<style>
+  :root{
+    --ink:#F3F7F4; --dim:#93A099; --faint:#5C6A62;
+    --mint:#37E29A; --mint-deep:#0C3A29; --mint-ink:#03140E;
+    --bg:#080b09; --panel:rgba(255,255,255,0.035); --edge:rgba(255,255,255,0.08);
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
+  a{color:inherit}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:19px;letter-spacing:-.01em}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint)}
+  .navlink{font-size:14px;color:var(--dim);text-decoration:none}
+
+  .hero{position:relative;overflow:hidden;border-bottom:0.75px solid var(--edge)}
+  .hero .glow{position:absolute;inset:0;z-index:0;
+    background:radial-gradient(90% 70% at 50% -10%, rgba(55,226,154,.20) 0%, rgba(55,226,154,.05) 35%, transparent 70%),
+               radial-gradient(60% 50% at 50% 120%, rgba(45,109,51,.35), transparent 70%)}
+  .hero .wrap{position:relative;z-index:1;text-align:center;padding:70px 24px 78px}
+  .eyebrow{display:inline-block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);
+    border:0.75px solid var(--edge);border-radius:30px;padding:7px 16px;margin-bottom:26px;background:var(--panel)}
+  h1{font-size:clamp(38px,6vw,68px);font-weight:600;letter-spacing:-.03em;line-height:1.02;text-wrap:balance}
+  h1 .accent{color:var(--mint)}
+  .sub{font-size:clamp(17px,2.4vw,21px);color:var(--dim);max-width:620px;margin:22px auto 0;text-wrap:balance}
+
+  .cta{display:inline-flex;align-items:center;gap:12px;margin-top:38px;background:var(--mint);color:var(--mint-ink);
+    font-size:18px;font-weight:600;text-decoration:none;padding:17px 30px;border-radius:14px;
+    box-shadow:0 14px 40px -10px rgba(55,226,154,.6);transition:transform .12s, box-shadow .12s}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 20px 50px -10px rgba(55,226,154,.75)}
+  .cta svg{width:20px;height:20px}
+  .meta{margin-top:16px;font-size:13.5px;color:var(--faint)}
+  .meta b{color:var(--dim);font-weight:500}
+
+  section{padding:64px 0;border-bottom:0.75px solid var(--edge)}
+  .h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);text-align:center;margin-bottom:36px;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:var(--panel);border:0.75px solid var(--edge);border-radius:16px;padding:26px 24px}
+  .card .ic{width:40px;height:40px;border-radius:11px;background:rgba(55,226,154,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .card .ic svg{width:21px;height:21px;stroke:var(--mint)}
+  .card h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin-bottom:7px}
+  .card p{font-size:14.5px;color:var(--dim)}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
+  .step{background:var(--panel);border:0.75px solid var(--edge);border-radius:16px;padding:24px}
+  .step::before{counter-increment:s;content:counter(s);display:flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:10px;background:var(--mint);color:var(--mint-ink);font-weight:600;font-size:16px;margin-bottom:14px}
+  .step h3{font-size:16.5px;font-weight:600;margin-bottom:6px}
+  .step p{font-size:14px;color:var(--dim)}
+  .step code{background:rgba(255,255,255,.06);border-radius:5px;padding:1px 6px;font-size:13px;color:var(--ink)}
+
+  .req{text-align:center;color:var(--dim);font-size:15px}
+  .req b{color:var(--ink);font-weight:500}
+
+  footer{padding:34px 0 60px;text-align:center;color:var(--faint);font-size:13px}
+  @media(max-width:720px){.grid,.steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="brand"><span class="dot"></span> Stick.ai</div>
+  <a class="navlink" href="#install">How it works</a>
+</header>
+
+<div class="hero">
+  <div class="glow"></div>
+  <div class="wrap">
+    <span class="eyebrow">For the FlightScope Mevo+</span>
+    <h1>Tour-level practice.<br><span class="accent">Your launch monitor.</span></h1>
+    <p class="sub">Stick.ai turns your Mevo+ into a TrackMan-grade practice simulator — real ball flight from every shot, strokes-gained scoring, and a practice handicap that actually tracks your game.</p>
+    <a class="cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+      Download for Windows
+    </a>
+    <div class="meta"><b>Free</b> · Windows 10 &amp; 11 · one-click installer</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="h2">Why Stick.ai</div>
+    <div class="grid">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6-14 12-14 18 0"/><circle cx="18" cy="6" r="1.6" fill="currentColor" stroke="none"/></svg></div>
+        <h3>Real ball flight</h3>
+        <p>Every shot flies on your measured carry, spin, apex and offline — then bounces, checks, or zips back on the green just like the real thing.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></div>
+        <h3>Strokes-gained scoring</h3>
+        <p>Every shot is graded against PGA-Tour baselines, so you know instantly whether that approach helped or hurt.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10M12 2v10l7 3"/></svg></div>
+        <h3>Practice handicap</h3>
+        <p>A rolling handicap and session stats — GIR, proximity, trends — so practice finally shows whether you're improving.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="h2">Up and running in a minute</div>
+    <div class="steps">
+      <div class="step">
+        <h3>Install</h3>
+        <p>Download and double-click <code>Stick-Setup.exe</code>. Stick.ai lands on your desktop — no setup, no admin.</p>
+      </div>
+      <div class="step">
+        <h3>Connect your Mevo+</h3>
+        <p>Put your PC on the Mevo's Wi-Fi and power it on. Open Stick.ai — it finds the monitor automatically.</p>
+      </div>
+      <div class="step">
+        <h3>Hit shots</h3>
+        <p>Every shot plays out in 3D with full data and a score. No launch monitor handy? Open <b>Stick.ai Demo</b> to try it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap req">
+    <p><b>Works with:</b> FlightScope Mevo+ &nbsp;·&nbsp; <b>Needs:</b> Windows 10/11 PC on the same Wi-Fi as the monitor</p>
+  </div>
+</section>
+
+<footer>Stick.ai · playstick.golf</footer>
+
+</body>
+</html>

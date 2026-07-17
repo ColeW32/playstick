@@ -1,0 +1,33 @@
+name: build-installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download app payload from release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v1.0.0 -p stick-app.zip -D payload
+
+      - name: Unzip payload
+        shell: pwsh
+        run: Expand-Archive -Path payload/stick-app.zip -DestinationPath staging -Force
+
+      - name: Install NSIS
+        run: choco install nsis -y --no-progress
+
+      - name: Build installer
+        shell: cmd
+        run: '"C:\Program Files (x86)\NSIS\makensis.exe" /DSRC=%CD%\staging /DOUTFILE=%CD%\Stick-Setup.exe installer\stick-installer.nsi'
+
+      - name: Upload installer to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload v1.0.0 Stick-Setup.exe --clobber
