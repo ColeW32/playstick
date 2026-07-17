@@ -3,140 +3,332 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stick.ai — Tour-level practice for your Mevo+</title>
-<meta name="description" content="Turn your FlightScope Mevo+ into a TrackMan-level practice simulator. Real ball flight, strokes-gained scoring, and a practice handicap.">
+<title>Stick.ai — The golf performance center for your Mevo+</title>
+<meta name="description" content="Stick.ai turns your FlightScope Mevo+ into a tour-level golf performance center: real 3D ball flight, strokes-gained scoring, and a practice handicap that proves you're improving.">
+<meta property="og:title" content="Stick.ai — a golf performance center for your Mevo+">
+<meta property="og:description" content="Real 3D ball flight, strokes-gained scoring, and a practice handicap — powered by your FlightScope Mevo+.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#F3F7F4; --dim:#93A099; --faint:#5C6A62;
-    --mint:#37E29A; --mint-deep:#0C3A29; --mint-ink:#03140E;
-    --bg:#080b09; --panel:rgba(255,255,255,0.035); --edge:rgba(255,255,255,0.08);
-    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+    --bg:#060A08; --bg2:#0A120D; --panel:#0C140F;
+    --ink:#EDF4EF; --dim:#8B9A90; --faint:#556259;
+    --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.13);
+    --mint:#2FE08A; --mint2:#8CF3C0; --pine:#0E2A1D;
+    --amber:#F0C24A; --coral:#F0864A; --red:#F05A5F; --lime:#8FD457;
+    --disp:'Archivo',sans-serif; --body:'Manrope',sans-serif; --mono:'IBM Plex Mono',monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
-  a{color:inherit}
-  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+  .mono{font-family:var(--mono);font-weight:500}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mint)}
+  h1,h2,h3{font-family:var(--disp);font-weight:900;letter-spacing:-.02em;line-height:1.02;text-wrap:balance}
 
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:19px;letter-spacing:-.01em}
-  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint)}
-  .navlink{font-size:14px;color:var(--dim);text-decoration:none}
+  /* reveal */
+  .anim .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)}
+  .anim .reveal.in{opacity:1;transform:none}
 
-  .hero{position:relative;overflow:hidden;border-bottom:0.75px solid var(--edge)}
-  .hero .glow{position:absolute;inset:0;z-index:0;
-    background:radial-gradient(90% 70% at 50% -10%, rgba(55,226,154,.20) 0%, rgba(55,226,154,.05) 35%, transparent 70%),
-               radial-gradient(60% 50% at 50% 120%, rgba(45,109,51,.35), transparent 70%)}
-  .hero .wrap{position:relative;z-index:1;text-align:center;padding:70px 24px 78px}
-  .eyebrow{display:inline-block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);
-    border:0.75px solid var(--edge);border-radius:30px;padding:7px 16px;margin-bottom:26px;background:var(--panel)}
-  h1{font-size:clamp(38px,6vw,68px);font-weight:600;letter-spacing:-.03em;line-height:1.02;text-wrap:balance}
-  h1 .accent{color:var(--mint)}
-  .sub{font-size:clamp(17px,2.4vw,21px);color:var(--dim);max-width:620px;margin:22px auto 0;text-wrap:balance}
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(6,10,8,.72);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.01em}
+  .brand .mk{width:26px;height:26px;border-radius:7px;background:var(--mint);position:relative;box-shadow:0 0 18px rgba(47,224,138,.5)}
+  .brand .mk::after{content:"";position:absolute;inset:7px 7px auto 7px;height:12px;border-radius:2px;background:var(--bg)}
+  .nav-cta{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--bg);background:var(--mint);padding:10px 18px;border-radius:9px;transition:.15s}
+  .nav-cta:hover{background:var(--mint2)}
 
-  .cta{display:inline-flex;align-items:center;gap:12px;margin-top:38px;background:var(--mint);color:var(--mint-ink);
-    font-size:18px;font-weight:600;text-decoration:none;padding:17px 30px;border-radius:14px;
-    box-shadow:0 14px 40px -10px rgba(55,226,154,.6);transition:transform .12s, box-shadow .12s}
-  .cta:hover{transform:translateY(-2px);box-shadow:0 20px 50px -10px rgba(55,226,154,.75)}
-  .cta svg{width:20px;height:20px}
-  .meta{margin-top:16px;font-size:13.5px;color:var(--faint)}
-  .meta b{color:var(--dim);font-weight:500}
+  /* hero */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero-bg{position:absolute;inset:0;z-index:0}
+  .hero-bg .glow{position:absolute;inset:0;background:
+    radial-gradient(70% 55% at 22% 0%, rgba(47,224,138,.18), transparent 60%),
+    radial-gradient(80% 60% at 100% 120%, rgba(14,42,29,.9), transparent 70%)}
+  .grid-lines{position:absolute;inset:0;opacity:.5;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:64px 64px;mask-image:radial-gradient(120% 90% at 30% 10%,#000 40%,transparent 85%)}
+  .tracer{position:absolute;inset:0;width:100%;height:100%}
+  .tracer path.arc{fill:none;stroke:var(--mint);stroke-width:3;filter:drop-shadow(0 0 8px rgba(47,224,138,.85));
+    stroke-linecap:round;stroke-dasharray:1700;stroke-dashoffset:1700;animation:draw 7s cubic-bezier(.4,0,.2,1) infinite}
+  .tracer path.ghost{fill:none;stroke:var(--line2);stroke-width:1.5;stroke-dasharray:4 8}
+  .tracer .ball{fill:#fff;filter:drop-shadow(0 0 7px rgba(255,255,255,.9));offset-path:path('M120 560 Q620 90 1180 470');offset-distance:0%;animation:fly 7s cubic-bezier(.4,0,.2,1) infinite}
+  @keyframes draw{0%{stroke-dashoffset:1700}55%{stroke-dashoffset:0}92%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+  @keyframes fly{0%{offset-distance:0%;opacity:0}4%{opacity:1}55%{offset-distance:100%;opacity:1}70%{opacity:1}100%{offset-distance:100%;opacity:0}}
 
-  section{padding:64px 0;border-bottom:0.75px solid var(--edge)}
-  .h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);text-align:center;margin-bottom:36px;font-weight:600}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  .card{background:var(--panel);border:0.75px solid var(--edge);border-radius:16px;padding:26px 24px}
-  .card .ic{width:40px;height:40px;border-radius:11px;background:rgba(55,226,154,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-  .card .ic svg{width:21px;height:21px;stroke:var(--mint)}
-  .card h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin-bottom:7px}
-  .card p{font-size:14.5px;color:var(--dim)}
+  .hero .wrap{position:relative;z-index:2;padding:96px 28px 108px}
+  .hero-in{max-width:720px}
+  .hero h1{font-size:clamp(44px,7.2vw,86px);margin:22px 0 0}
+  .hero h1 em{font-style:normal;color:var(--mint);display:block}
+  .hero p.lede{font-size:clamp(17px,2.1vw,21px);color:var(--dim);max-width:600px;margin:26px 0 0;line-height:1.55}
+  .actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:40px}
+  .btn{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-weight:600;font-size:16px;letter-spacing:.02em;
+    background:var(--mint);color:var(--bg);padding:18px 28px;border-radius:12px;box-shadow:0 16px 44px -12px rgba(47,224,138,.6);transition:transform .14s, box-shadow .14s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 24px 58px -12px rgba(47,224,138,.8)}
+  .btn svg{width:19px;height:19px}
+  .btn-ghost{font-family:var(--mono);font-size:14px;color:var(--dim);padding:16px 6px;letter-spacing:.03em}
+  .btn-ghost:hover{color:var(--ink)}
+  .avail{font-family:var(--mono);font-size:12.5px;color:var(--faint);letter-spacing:.06em;margin-top:20px}
+  .avail b{color:var(--dim);font-weight:600}
 
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
-  .step{background:var(--panel);border:0.75px solid var(--edge);border-radius:16px;padding:24px}
-  .step::before{counter-increment:s;content:counter(s);display:flex;align-items:center;justify-content:center;
-    width:34px;height:34px;border-radius:10px;background:var(--mint);color:var(--mint-ink);font-weight:600;font-size:16px;margin-bottom:14px}
-  .step h3{font-size:16.5px;font-weight:600;margin-bottom:6px}
-  .step p{font-size:14px;color:var(--dim)}
-  .step code{background:rgba(255,255,255,.06);border-radius:5px;padding:1px 6px;font-size:13px;color:var(--ink)}
+  /* floating data chips */
+  .chip{position:absolute;z-index:2;background:rgba(10,18,13,.72);border:1px solid var(--line2);border-radius:12px;
+    padding:11px 15px;backdrop-filter:blur(8px);animation:float 6s ease-in-out infinite}
+  .chip .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+  .chip .v{font-family:var(--disp);font-weight:800;font-size:24px;letter-spacing:-.01em;margin-top:1px}
+  .chip .v small{font-size:12px;color:var(--dim);font-weight:600;font-family:var(--mono);margin-left:3px}
+  .chip.c1{top:20%;right:8%}.chip.c2{top:47%;right:23%;animation-delay:-2s}.chip.c3{top:70%;right:12%;animation-delay:-4s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 
-  .req{text-align:center;color:var(--dim);font-size:15px}
-  .req b{color:var(--ink);font-weight:500}
+  /* metric strip */
+  .strip{border-bottom:1px solid var(--line);background:var(--bg2)}
+  .strip .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+  .stat{padding:34px 24px;border-left:1px solid var(--line)}
+  .stat:first-child{border-left:0}
+  .stat .n{font-family:var(--disp);font-weight:900;font-size:38px;letter-spacing:-.02em;color:var(--ink)}
+  .stat .n span{color:var(--mint)}
+  .stat .l{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:6px}
 
-  footer{padding:34px 0 60px;text-align:center;color:var(--faint);font-size:13px}
-  @media(max-width:720px){.grid,.steps{grid-template-columns:1fr}}
+  /* section shell */
+  section.feat{padding:96px 0;border-bottom:1px solid var(--line)}
+  .sec-head{max-width:720px;margin-bottom:56px}
+  .sec-head h2{font-size:clamp(30px,4.2vw,46px);margin-top:16px}
+  .sec-head p{color:var(--dim);font-size:18px;margin-top:16px;max-width:560px}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  .row.flip .viz{order:2}
+  .feat-copy .tag{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mint)}
+  .feat-copy h3{font-size:clamp(26px,3.4vw,38px);margin:14px 0 0}
+  .feat-copy p{color:var(--dim);font-size:16.5px;margin-top:16px;line-height:1.65}
+  .viz{position:relative;background:
+      radial-gradient(120% 90% at 50% 0,rgba(47,224,138,.06),transparent 60%),var(--panel);
+    border:1px solid var(--line);border-radius:20px;padding:30px;min-height:320px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+  .viz .vgrid{position:absolute;inset:0;opacity:.4;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px}
+  .viz svg{position:relative;width:100%;height:auto;display:block}
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .step{padding:30px 26px;border:1px solid var(--line);border-radius:18px;background:var(--panel);position:relative}
+  .step .num{font-family:var(--mono);font-size:13px;color:var(--mint);letter-spacing:.12em}
+  .step h3{font-size:21px;margin:16px 0 8px;font-family:var(--disp);font-weight:800}
+  .step p{color:var(--dim);font-size:15px}
+  .step code{font-family:var(--mono);font-size:13px;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;color:var(--ink)}
+
+  /* compat */
+  .compat{padding:44px 0;border-bottom:1px solid var(--line);text-align:center}
+  .compat .row2{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:6px}
+  .pill{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--dim);border:1px solid var(--line2);border-radius:30px;padding:9px 18px;display:inline-flex;align-items:center;gap:9px}
+  .pill .d{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+
+  /* final cta */
+  .final{position:relative;overflow:hidden;padding:110px 0;text-align:center;border-bottom:1px solid var(--line)}
+  .final .glow{position:absolute;inset:0;background:radial-gradient(60% 90% at 50% 120%,rgba(47,224,138,.22),transparent 65%)}
+  .final .wrap{position:relative;z-index:1}
+  .final h2{font-size:clamp(34px,5.5vw,62px)}
+  .final p{color:var(--dim);font-size:18px;margin:18px auto 0;max-width:520px}
+  .final .actions{justify-content:center}
+
+  footer{padding:40px 0 64px}
+  footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;color:var(--faint);font-family:var(--mono);font-size:12.5px;letter-spacing:.04em}
+
+  @media(max-width:860px){
+    .row{grid-template-columns:1fr;gap:30px}.row.flip .viz{order:0}
+    .strip .wrap{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}
+    .steps{grid-template-columns:1fr}
+    .chip{display:none}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .tracer path.arc{animation:none;stroke-dashoffset:0}.tracer .ball{animation:none;offset-distance:100%}.chip{animation:none}
+  }
 </style>
 </head>
 <body>
 
-<header class="wrap">
-  <div class="brand"><span class="dot"></span> Stick.ai</div>
-  <a class="navlink" href="#install">How it works</a>
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mk"></span>Stick.ai</a>
+    <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-bg">
+    <div class="glow"></div>
+    <div class="grid-lines"></div>
+    <svg class="tracer" viewBox="0 0 1280 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path class="ghost" d="M120 560 Q620 90 1180 470"/>
+      <path class="arc"   d="M120 560 Q620 90 1180 470"/>
+      <circle class="ball" r="7" cx="0" cy="0"/>
+      <circle cx="1180" cy="470" r="4" fill="var(--mint)"/>
+    </svg>
+  </div>
+  <div class="chip c1"><div class="k">Carry</div><div class="v">172<small>YD</small></div></div>
+  <div class="chip c2"><div class="k">Backspin</div><div class="v">6,400<small>RPM</small></div></div>
+  <div class="chip c3"><div class="k">Apex</div><div class="v">94<small>FT</small></div></div>
+
+  <div class="wrap">
+    <div class="hero-in">
+      <span class="eyebrow">Stick.ai · for FlightScope Mevo+</span>
+      <h1>Turn any room into a <em>golf performance center.</em></h1>
+      <p class="lede">Stick.ai reads your Mevo+ and plays every shot in true 3D — real ball flight, strokes-gained scoring, and a practice handicap that tracks your game like the range never could.</p>
+      <div class="actions">
+        <a class="btn" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+          Download for Windows
+        </a>
+        <a class="btn-ghost" href="#how">See how it works ↓</a>
+      </div>
+      <div class="avail"><b>Free</b> · Windows 10 &amp; 11 · one-click installer · 96 MB</div>
+    </div>
+  </div>
 </header>
 
-<div class="hero">
-  <div class="glow"></div>
+<div class="strip">
   <div class="wrap">
-    <span class="eyebrow">For the FlightScope Mevo+</span>
-    <h1>Tour-level practice.<br><span class="accent">Your launch monitor.</span></h1>
-    <p class="sub">Stick.ai turns your Mevo+ into a TrackMan-grade practice simulator — real ball flight from every shot, strokes-gained scoring, and a practice handicap that actually tracks your game.</p>
-    <a class="cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
-      Download for Windows
-    </a>
-    <div class="meta"><b>Free</b> · Windows 10 &amp; 11 · one-click installer</div>
+    <div class="stat"><div class="n">9<span>+</span></div><div class="l">Metrics per shot</div></div>
+    <div class="stat"><div class="n">&lt;1<span>s</span></div><div class="l">Shot to feedback</div></div>
+    <div class="stat"><div class="n">100<span>%</span></div><div class="l">Your real numbers</div></div>
+    <div class="stat"><div class="n">PGA</div><div class="l">Tour SG baselines</div></div>
   </div>
 </div>
 
-<section>
+<section class="feat">
   <div class="wrap">
-    <div class="h2">Why Stick.ai</div>
-    <div class="grid">
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6-14 12-14 18 0"/><circle cx="18" cy="6" r="1.6" fill="currentColor" stroke="none"/></svg></div>
-        <h3>Real ball flight</h3>
-        <p>Every shot flies on your measured carry, spin, apex and offline — then bounces, checks, or zips back on the green just like the real thing.</p>
+    <div class="sec-head reveal">
+      <span class="eyebrow">The difference</span>
+      <h2>Built like the bays the pros train in.</h2>
+      <p>Not a game with your numbers bolted on — a practice environment engineered around the data your launch monitor already measures.</p>
+    </div>
+
+    <div class="row reveal" style="margin-bottom:64px">
+      <div class="feat-copy">
+        <div class="tag">Real ball flight</div>
+        <h3>What you hit is what you see.</h3>
+        <p>Carry, spin, launch, apex and offline drive a true 3D flight — then the ball bounces, checks, or zips back on the green exactly like the shot you just struck. Spin a wedge and watch it dance. Flight a long iron and watch it release.</p>
       </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l3-4 3 3 4-6"/></svg></div>
-        <h3>Strokes-gained scoring</h3>
-        <p>Every shot is graded against PGA-Tour baselines, so you know instantly whether that approach helped or hurt.</p>
+      <div class="viz" aria-hidden="true">
+        <div class="vgrid"></div>
+        <svg viewBox="0 0 420 260">
+          <ellipse cx="300" cy="196" rx="96" ry="34" fill="none" stroke="var(--line2)"/>
+          <ellipse cx="300" cy="196" rx="60" ry="21" fill="none" stroke="rgba(240,194,74,.55)"/>
+          <ellipse cx="300" cy="196" rx="28" ry="10" fill="none" stroke="var(--mint)"/>
+          <path d="M40 232 Q210 40 300 196" fill="none" stroke="var(--mint)" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(47,224,138,.7))"/>
+          <path d="M40 232 Q210 40 300 196" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="3 6"/>
+          <circle cx="300" cy="196" r="6" fill="#fff"/>
+          <line x1="300" y1="150" x2="300" y2="196" stroke="var(--mint)" stroke-width="1.5"/>
+          <text x="300" y="140" text-anchor="middle" font-family="IBM Plex Mono" font-size="14" fill="#EDF4EF" font-weight="600">8 ft</text>
+          <text x="66" y="252" font-family="IBM Plex Mono" font-size="11" fill="#8B9A90">TEE</text>
+        </svg>
       </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10M12 2v10l7 3"/></svg></div>
-        <h3>Practice handicap</h3>
-        <p>A rolling handicap and session stats — GIR, proximity, trends — so practice finally shows whether you're improving.</p>
+    </div>
+
+    <div class="row flip reveal" style="margin-bottom:64px">
+      <div class="viz" aria-hidden="true">
+        <div class="vgrid"></div>
+        <svg viewBox="0 0 420 240">
+          <text x="24" y="40" font-family="IBM Plex Mono" font-size="11" fill="#8B9A90" letter-spacing="2">STROKES GAINED · APPROACH</text>
+          <line x1="24" y1="150" x2="396" y2="150" stroke="var(--line2)"/>
+          <g font-family="IBM Plex Mono" font-size="10" fill="#556259">
+            <text x="24" y="172">-1.0</text><text x="196" y="172" text-anchor="middle">0</text><text x="396" y="172" text-anchor="end">+1.0</text>
+          </g>
+          <rect x="210" y="92" width="150" height="30" rx="6" fill="rgba(47,224,138,.14)"/>
+          <rect x="24" y="92" width="80" height="30" rx="6" fill="rgba(240,90,95,.14)"/>
+          <line x1="322" y1="70" x2="322" y2="150" stroke="var(--mint)" stroke-width="2.5"/>
+          <circle cx="322" cy="70" r="5" fill="var(--mint)"/>
+          <text x="322" y="58" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="22" fill="var(--mint)">+0.34</text>
+          <text x="330" y="112" font-family="IBM Plex Mono" font-size="11" fill="#EDF4EF">GREAT</text>
+        </svg>
+      </div>
+      <div class="feat-copy">
+        <div class="tag">Strokes gained</div>
+        <h3>Every shot, graded like a scorecard.</h3>
+        <p>Each shot is measured against PGA-Tour baselines, so you know instantly whether that approach gained or lost strokes — not just how far it flew. Chase better numbers, not just longer ones.</p>
+      </div>
+    </div>
+
+    <div class="row reveal">
+      <div class="feat-copy">
+        <div class="tag">Practice handicap</div>
+        <h3>Proof you're actually improving.</h3>
+        <p>A rolling practice handicap plus session stats — greens in regulation, proximity to the pin, trend lines — turn aimless range time into measurable progress you can watch drop, week over week.</p>
+      </div>
+      <div class="viz" aria-hidden="true">
+        <div class="vgrid"></div>
+        <svg viewBox="0 0 420 240">
+          <text x="24" y="34" font-family="IBM Plex Mono" font-size="11" fill="#8B9A90" letter-spacing="2">PRACTICE HANDICAP · 6 WEEKS</text>
+          <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(47,224,138,.28)"/><stop offset="1" stop-color="rgba(47,224,138,0)"/></linearGradient></defs>
+          <path d="M30 70 L108 96 L186 88 L264 132 L342 150 L390 178 L390 210 L30 210 Z" fill="url(#fill)"/>
+          <path d="M30 70 L108 96 L186 88 L264 132 L342 150 L390 178" fill="none" stroke="var(--mint)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(47,224,138,.6))"/>
+          <circle cx="30" cy="70" r="4" fill="#8B9A90"/>
+          <circle cx="390" cy="178" r="6" fill="var(--mint)"/>
+          <text x="30" y="56" font-family="Archivo" font-weight="800" font-size="18" fill="#8B9A90">14.2</text>
+          <text x="390" y="164" text-anchor="end" font-family="Archivo" font-weight="900" font-size="22" fill="var(--mint)">10.8</text>
+        </svg>
       </div>
     </div>
   </div>
 </section>
 
-<section id="install">
+<section class="feat" id="how">
   <div class="wrap">
-    <div class="h2">Up and running in a minute</div>
+    <div class="sec-head reveal">
+      <span class="eyebrow">Setup</span>
+      <h2>From download to first shot in a minute.</h2>
+    </div>
     <div class="steps">
-      <div class="step">
-        <h3>Install</h3>
-        <p>Download and double-click <code>Stick-Setup.exe</code>. Stick.ai lands on your desktop — no setup, no admin.</p>
-      </div>
-      <div class="step">
-        <h3>Connect your Mevo+</h3>
-        <p>Put your PC on the Mevo's Wi-Fi and power it on. Open Stick.ai — it finds the monitor automatically.</p>
-      </div>
-      <div class="step">
-        <h3>Hit shots</h3>
-        <p>Every shot plays out in 3D with full data and a score. No launch monitor handy? Open <b>Stick.ai Demo</b> to try it.</p>
-      </div>
+      <div class="step reveal"><div class="num">01</div><h3>Install</h3><p>Download and double-click <code>Stick-Setup.exe</code>. Stick.ai lands on your desktop — no admin, no setup.</p></div>
+      <div class="step reveal"><div class="num">02</div><h3>Connect your Mevo+</h3><p>Put your PC on the Mevo's Wi-Fi and power it on. Open Stick.ai — it finds the monitor automatically.</p></div>
+      <div class="step reveal"><div class="num">03</div><h3>Hit shots</h3><p>Every shot plays out in 3D with full data and a score. No launch monitor handy? Open <b>Stick.ai Demo</b>.</p></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap req">
-    <p><b>Works with:</b> FlightScope Mevo+ &nbsp;·&nbsp; <b>Needs:</b> Windows 10/11 PC on the same Wi-Fi as the monitor</p>
+<div class="compat">
+  <div class="wrap reveal">
+    <span class="eyebrow">Compatibility</span>
+    <div class="row2">
+      <span class="pill"><span class="d"></span>FlightScope Mevo+</span>
+      <span class="pill"><span class="d"></span>Windows 10 &amp; 11</span>
+      <span class="pill"><span class="d"></span>Runs on a mini PC</span>
+      <span class="pill"><span class="d"></span>Same Wi-Fi as the monitor</span>
+    </div>
+  </div>
+</div>
+
+<section class="final">
+  <div class="glow"></div>
+  <div class="wrap reveal">
+    <span class="eyebrow">Ready when you are</span>
+    <h2>Build your performance center.</h2>
+    <p>One download. Your launch monitor. Practice that finally counts.</p>
+    <div class="actions">
+      <a class="btn" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+        Download for Windows
+      </a>
+    </div>
   </div>
 </section>
 
-<footer>Stick.ai · playstick.golf</footer>
+<footer>
+  <div class="wrap">
+    <span>STICK.AI · PLAYSTICK.GOLF</span>
+    <span>Powered by FlightScope Mevo+</span>
+  </div>
+</footer>
 
+<script>
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('anim');
+  addEventListener('DOMContentLoaded',function(){
+    var els=[].slice.call(document.querySelectorAll('.reveal'));
+    if(!('IntersectionObserver' in window)){els.forEach(function(el){el.classList.add('in');});return;}
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+    els.forEach(function(el){io.observe(el);});
+    // safety net: never leave content hidden
+    setTimeout(function(){els.forEach(function(el){el.classList.add('in');});},2200);
+  });
+</script>
 </body>
 </html>
