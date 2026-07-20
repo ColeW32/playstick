@@ -48,6 +48,12 @@ Section "Install"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Stick.ai" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Stick.ai" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Stick.ai" "NoRepair" 1
+
+  ; In-app auto-update runs this installer SILENTLY (/S). In that case there's no finish page,
+  ; so relaunch the app ourselves. A normal (interactive) install skips this — the finish page's
+  ; "Launch Stick.ai now" checkbox handles it, and we must not double-launch.
+  IfSilent 0 +2
+    Exec "$INSTDIR\Stick.ai.exe"
 SectionEnd
 
 Section "Uninstall"
