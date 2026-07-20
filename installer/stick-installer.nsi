@@ -30,6 +30,14 @@ SetCompressor /SOLID lzma
 !insertmacro MUI_LANGUAGE "English"
 
 Section "Install"
+  ; Kill any already-running copy FIRST. Windows refuses to let File /r overwrite a locked
+  ; .exe — if the old Stick.ai.exe is still open, the copy below silently skips just that one
+  ; file while every other file updates fine, so Setup reports success but the app itself,
+  ; and the version it displays, never actually changes. This is what makes "reinstall" look
+  ; like it does nothing: everything except the one file that matters gets replaced.
+  ExecWait 'taskkill /F /IM "Stick.ai.exe"'
+  Sleep 500
+
   SetOutPath "$INSTDIR"
   File /r "${SRC}\*"
 
