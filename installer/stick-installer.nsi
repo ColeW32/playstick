@@ -8,7 +8,11 @@
 
 !define APPNAME "Stick.ai"
 !define COMPANY "Stick"
-!define VERSION "1.0.0"
+; APPVER is the real app version, passed by CI (/DAPPVER=0.53). Falls back for local builds.
+!ifndef APPVER
+  !define APPVER "1.0.0"
+!endif
+!define VERSION "${APPVER}"
 
 Name "${APPNAME}"
 OutFile "${OUTFILE}"
@@ -16,6 +20,15 @@ InstallDir "$LOCALAPPDATA\Programs\Stick.ai"
 InstallDirRegKey HKCU "Software\Stick.ai" "InstallDir"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
+
+; --- Setup.exe file metadata (Properties -> Details), so the installer itself is identifiable ---
+VIProductVersion "1.0.0.0"
+VIAddVersionKey "ProductName" "Stick.ai"
+VIAddVersionKey "ProductVersion" "${APPVER}"
+VIAddVersionKey "FileVersion" "${APPVER}"
+VIAddVersionKey "FileDescription" "Stick.ai Installer"
+VIAddVersionKey "CompanyName" "${COMPANY}"
+VIAddVersionKey "LegalCopyright" "Stick"
 
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\Stick.ai.exe"
@@ -30,15 +43,23 @@ SetCompressor /SOLID lzma
 !insertmacro MUI_LANGUAGE "English"
 
 Section "Install"
-  ; Kill any already-running copy FIRST. Windows refuses to let File /r overwrite a locked
-  ; .exe — if the old Stick.ai.exe is still open, the copy below silently skips just that one
-  ; file while every other file updates fine, so Setup reports success but the app itself,
-  ; and the version it displays, never actually changes. This is what makes "reinstall" look
-  ; like it does nothing: everything except the one file that matters gets replaced.
-  ExecWait 'taskkill /F /IM "Stick.ai.exe"'
-  Sleep 500
+  ; Stop the running app AND its connector FIRST. Windows refuses to let File /r overwrite a
+  ; locked file — if the old Stick.ai.exe (or the mevo-connector holding a handle on the app
+  ; folder) is still open, the copy below silently skips those files while everything else
+  ; updates, so Setup reports success but the app, and the version it shows, never change.
+  ; This is the classic "reinstall does nothing / still shows the old version" failure.
+  ; /T also kills any child processes the app spawned.
+  nsExec::Exec 'taskkill /F /T /IM "Stick.ai.exe"'
+  nsExec::Exec 'taskkill /F /IM "mevo-connector.exe"'
+  nsExec::Exec 'taskkill /F /IM "mevo-connector-ota.exe"'
+  Sleep 1500   ; give Windows time to release the file locks before we delete
+
+  ; Clean replace: wipe the previous install so no stale file from an older build survives.
+  ; Safe — user data (stats/settings) lives in AppData\LocalLow, never in $INSTDIR.
+  RMDir /r "$INSTDIR"
 
   SetOutPath "$INSTDIR"
+  SetOverwrite on
   File /r "${SRC}\*"
 
   CreateShortcut "$DESKTOP\Stick.ai.lnk" "$INSTDIR\Stick.ai.exe" "" "$INSTDIR\Stick.ai.exe" 0

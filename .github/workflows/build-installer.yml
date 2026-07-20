@@ -22,14 +22,44 @@ jobs:
         shell: pwsh
         run: Expand-Archive -Path payload/stick-app.zip -DestinationPath staging -Force
 
+      # Find the folder that actually contains Stick.ai.exe, whatever the zip nesting is
+      # (the payload wraps files in a Stick-App/ subfolder). Installing from this exact folder
+      # guarantees files land at $INSTDIR\Stick.ai.exe — matching every shortcut and the
+      # auto-update relaunch. Installing from the zip root instead nests them under
+      # $INSTDIR\Stick-App\ and leaves every shortcut pointing at a path that doesn't exist.
+      - name: Locate app root + read version
+        id: app
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem staging -Recurse -Filter Stick.ai.exe | Select-Object -First 1
+          if (-not $exe) { throw "Stick.ai.exe not found in payload" }
+          $root = $exe.Directory.FullName
+          $verFile = Join-Path $root 'version.txt'
+          $ver = if (Test-Path $verFile) { (Get-Content $verFile -Raw).Trim() } else { '1.0.0' }
+          "root=$root"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version=$ver"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "App root: $root"
+          Write-Host "App version: $ver"
+
       - name: Install NSIS
         run: choco install nsis -y --no-progress
 
       - name: Build installer
         shell: cmd
-        run: '"C:\Program Files (x86)\NSIS\makensis.exe" /DSRC=%CD%\staging /DOUTFILE=%CD%\Stick-Setup.exe installer\stick-installer.nsi'
+        run: '"C:\Program Files (x86)\NSIS\makensis.exe" /DSRC="${{ steps.app.outputs.root }}" /DAPPVER=${{ steps.app.outputs.version }} /DOUTFILE=%CD%\Stick-Setup.exe installer\stick-installer.nsi'
 
       - name: Upload installer to release
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload v1.0.0 Stick-Setup.exe --clobber
+
+      # Publish the auto-updater's version marker from the SAME source as the installer, so
+      # version.txt can never drift from the installed app (a mismatch update-loops old clients).
+      - name: Publish version.txt from payload
+        if: steps.app.outputs.version != '1.0.0'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          '${{ steps.app.outputs.version }}' | Out-File -FilePath version.txt -NoNewline -Encoding ascii
+          gh release upload v1.0.0 version.txt --clobber
