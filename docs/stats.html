@@ -17,7 +17,8 @@
     --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.13);
     --mint:#2FE08A; --mint2:#8CF3C0; --pine:#0E2A1D;
     --amber:#F0C24A; --coral:#F0864A; --red:#F05A5F; --lime:#8FD457;
-    --loss:#C75E36;   /* flags the weakest yardage band; validated for contrast on this surface */
+    --gain:#1FA866; --loss:#C75E36;  /* strokes gained/lost, and the weakest-band flag —
+                                        validated for lightness, CVD separation and contrast here */
     --disp:'Archivo',sans-serif; --body:'Manrope',sans-serif; --mono:'IBM Plex Mono',monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -80,6 +81,8 @@
   tbody tr.weak td:first-child::after{content:"weakest";font-family:var(--mono);font-size:10px;letter-spacing:.1em;
     text-transform:uppercase;color:var(--loss);border:1px solid rgba(199,94,54,.5);border-radius:20px;padding:2px 8px;margin-left:10px;font-weight:600}
   .num{color:var(--dim)}
+  .sg-pos{color:var(--gain);font-weight:600}
+  .sg-neg{color:var(--loss);font-weight:600}
   .num.hi{color:var(--ink)}
 
   /* states */
@@ -111,10 +114,10 @@
 
 <nav>
   <div class="wrap">
-    <a class="brand" href="./"><span class="mk"></span>Stick.ai</a>
+    <a class="brand" href="/"><span class="mk"></span>Stick.ai</a>
     <div class="nav-right">
-      <a class="nav-link" href="./stats.html" aria-current="page">Stats</a>
-      <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download · v0.63</a>
+      <a class="nav-link" href="/stats" aria-current="page">Stats</a>
+      <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download · v0.64</a>
     </div>
   </div>
 </nav>
@@ -145,7 +148,7 @@
     <div class="wrap">
       <div class="tile"><div class="n" id="t-shots">—</div><div class="l">Practice shots</div></div>
       <div class="tile"><div class="n" id="t-hcp">—</div><div class="l">Practice handicap</div></div>
-      <div class="tile"><div class="n" id="t-target">—</div><div class="l">Target handicap</div></div>
+      <div class="tile"><div class="n" id="t-sg">—</div><div class="l">SG / shot vs Tour</div></div>
       <div class="tile"><div class="n sm" id="t-weak">—</div><div class="l">Weakest band</div></div>
     </div>
   </div>
@@ -166,7 +169,7 @@
           <thead>
             <tr>
               <th scope="col">Distance</th><th scope="col">Shots</th><th scope="col">Avg proximity</th>
-              <th scope="col">Plays to</th><th scope="col">Bias</th><th scope="col">Dispersion</th><th scope="col">Avg carry</th>
+              <th scope="col">Plays to</th><th scope="col">SG vs Tour</th><th scope="col">Bias</th><th scope="col">Dispersion</th><th scope="col">Avg carry</th>
             </tr>
           </thead>
           <tbody id="band-rows"></tbody>
@@ -190,6 +193,23 @@
 
   function show(el){ el.hidden = false; }
   function hide(el){ el.hidden = true; }
+
+  // Strokes gained against a tour professional, per shot. Positive means the shot beat
+  // the pro's average from that distance.
+  // A band with no reading is not a reading of zero \u2014 an absent value must never be shown,
+  // or averaged in, as exact Tour parity.
+  function hasSg(b){ return b && b.avgSg !== null && b.avgSg !== undefined && isFinite(Number(b.avgSg)); }
+  // Take the sign off the ROUNDED value, so -0.004 reads a neutral 0.00 and not a signed zero.
+  function sgText(v){
+    if(v === null || v === undefined || !isFinite(Number(v))) return '\u2014';
+    var n = parseFloat((Number(v)||0).toFixed(2));
+    return (n>0?'+':n<0?'\u2212':'') + Math.abs(n).toFixed(2);
+  }
+  function sgCls(v){
+    if(v === null || v === undefined || !isFinite(Number(v))) return 'num';
+    var n = parseFloat((Number(v)||0).toFixed(2));
+    return n>0?'sg-pos':n<0?'sg-neg':'num';
+  }
 
   function hcpText(v){ var n = Number(v)||0; return (n<0 ? '+' + Math.abs(n).toFixed(1) : n.toFixed(1)); }
 
@@ -225,6 +245,7 @@
            +   '<td class="num">' + (Number(b.count)||0) + '</td>'
            +   '<td class="num hi">' + (Number(b.avgProxFt)||0).toFixed(1) + ' ft</td>'
            +   '<td class="num">' + hcpText(b.playedTo) + '</td>'
+           +   '<td class="' + sgCls(b.avgSg) + '">' + sgText(b.avgSg) + '</td>'
            +   '<td class="num">' + biasTxt + '</td>'
            +   '<td class="num">± ' + (Number(b.dispersionYd)||0).toFixed(1) + ' yd</td>'
            +   '<td class="num">' + Math.round(Number(b.avgCarry)||0) + ' yd</td>'
@@ -247,8 +268,20 @@
 
     $('t-shots').textContent  = shots.toLocaleString();
     $('t-hcp').textContent    = hcpText(practice.playedTo);
-    $('t-target').textContent = hcpText(d.targetHcp);
-    $('t-weak').textContent   = practice.weakestBand ? practice.weakestBand + ' yd' : '—';
+    var sgN=0, sgSum=0;
+    (practice.bands||[]).forEach(function(b){
+      if(!hasSg(b)) return;                       // no reading, not a reading of zero
+      var n=Number(b.count)||0; sgN+=n; sgSum+=n*Number(b.avgSg);
+    });
+    var sgAvg = sgN ? sgSum/sgN : 0;
+    var sgEl = $('t-sg');
+    sgEl.textContent = sgN ? sgText(sgAvg) : '—';
+    // Colour off the same ROUNDED decision as the text, or a neutral 0.00 could be painted
+    // as a loss on its way through parity.
+    sgEl.style.color = ({'sg-pos':'var(--gain)','sg-neg':'var(--loss)'})[sgN ? sgCls(sgAvg) : 'num'] || '';
+    // No weakest band means every band beat the target — say that, rather than showing a
+    // dash that reads as missing data.
+    $('t-weak').textContent   = practice.weakestBand ? practice.weakestBand + ' yd' : 'none';
 
     var bands = practice.bands || [];
     if(bands.length){ table(bands, practice.weakestBand); }
