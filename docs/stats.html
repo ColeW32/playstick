@@ -117,7 +117,7 @@
     <a class="brand" href="/"><span class="mk"></span>Stick.ai</a>
     <div class="nav-right">
       <a class="nav-link" href="/stats" aria-current="page">Stats</a>
-      <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download · v0.66</a>
+      <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download · v0.67</a>
     </div>
   </div>
 </nav>
@@ -239,7 +239,10 @@
       var isWeak = weakest && (weakest === (lo + '–' + hi) || weakest === (lo + '-' + hi));
       var bias = Number(b.offlineBias)||0;
       var biasTxt = Math.abs(bias) < 0.5 ? 'straight'
-                  : Math.abs(bias).toFixed(1) + ' yd ' + (bias > 0 ? 'right' : 'left');
+                  // The device reports NEGATIVE for right — confirmed against a shot the player
+                  // described as "5.2 degrees right", logged as launchDir -5.2. This column was
+                  // inverted and showed every miss on the wrong side.
+                  : Math.abs(bias).toFixed(1) + ' yd ' + (bias > 0 ? 'left' : 'right');
       html += '<tr' + (isWeak ? ' class="weak"' : '') + '>'
            +   '<td>' + label + '</td>'
            +   '<td class="num">' + (Number(b.count)||0) + '</td>'
