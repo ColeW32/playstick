@@ -213,13 +213,19 @@
 
   function hcpText(v){ var n = Number(v)||0; return (n<0 ? '+' + Math.abs(n).toFixed(1) : n.toFixed(1)); }
 
+  // Wall-clock first so you can match it to when you closed a session; relative as a check.
+  function clock(ts){
+    var d = new Date(ts * 1000);
+    return d.toLocaleString(undefined, { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+  }
   function ago(ts){
     if(!ts) return 'never updated';
     var s = Math.floor(Date.now()/1000) - ts;
-    if(s < 90) return 'updated just now';
-    if(s < 5400) return 'updated ' + Math.round(s/60) + ' minutes ago';
-    if(s < 172800) return 'updated ' + Math.round(s/3600) + ' hours ago';
-    return 'updated ' + Math.round(s/86400) + ' days ago';
+    var rel = s < 90 ? 'just now'
+            : s < 5400 ? Math.round(s/60) + ' minutes ago'
+            : s < 172800 ? Math.round(s/3600) + ' hours ago'
+            : Math.round(s/86400) + ' days ago';
+    return 'last refreshed ' + clock(ts) + ' · ' + rel;
   }
 
   // Two different empty cases: the sim hasn't uploaded anything yet, or we couldn't ask.
@@ -263,7 +269,9 @@
     var practice = d.practice || {};
     var shots = Number(practice.shots)||0;
 
-    if(!shots) return fail(null);
+    // Empty payload: show the empty state only on first load. A later zero-shot poll
+    // must not hide numbers already on screen (redeploy wipe, transient blank blob).
+    if(!shots){ if(!seen) fail(null); return; }
 
     $('player').textContent  = d.player || 'This simulator';
     $('hcp').textContent     = hcpText(practice.playedTo);
@@ -287,19 +295,27 @@
     $('t-weak').textContent   = practice.weakestBand ? practice.weakestBand + ' yd' : 'none';
 
     var bands = practice.bands || [];
-    if(bands.length){ table(bands, practice.weakestBand); }
+    if(bands.length){ table(bands, practice.weakestBand); show($('practice-blk')); }
     else { hide($('practice-blk')); }
 
     hide($('loading'));
     show($('content'));
+    seen = true;
   }
 
-  fetch(SRC, {cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(render)
-    .catch(function(){
-      fail("Couldn't reach the stats server just now. Try again in a minute.");
-    });
+  // Poll so a session that just ended shows up without a manual reload. First failure
+  // stays on the empty state; later failures leave the last-good numbers alone.
+  var seen = false;
+  function pull(){
+    fetch(SRC, {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(render)
+      .catch(function(){
+        if(!seen) fail("Couldn't reach the stats server just now. Try again in a minute.");
+      });
+  }
+  pull();
+  setInterval(pull, 30000);
 })();
 </script>
 </body>
