@@ -97,6 +97,28 @@
   footer{padding:40px 0 64px}
   footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;color:var(--faint);font-family:var(--mono);font-size:12.5px;letter-spacing:.04em}
 
+
+  /* golf combine */
+  .cmb-tiles{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden}
+  .cmb-tiles .tile{padding:24px 22px}
+  .cmb-legend{display:flex;gap:22px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;color:var(--dim);margin:22px 0 0}
+  .cmb-legend i{display:inline-block;width:3px;height:14px;vertical-align:-2px;margin-right:8px;border-radius:2px}
+  .cmb-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;margin-top:26px}
+  .card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:22px 24px}
+  .card h3{font-family:var(--mono);font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+  .brow{margin:0 0 16px}
+  .brow .top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:14px}
+  .brow .top b{font-family:var(--disp);font-size:20px;font-weight:900}
+  .brow .top .avg{color:var(--faint);font-size:12px;margin-left:8px;font-family:var(--mono)}
+  .bar{position:relative;height:7px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:7px}
+  .bar .f{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+  .bar .t{position:absolute;top:-5px;width:3px;height:17px;border-radius:2px;margin-left:-1.5px}
+  .dist{display:grid;grid-template-columns:1fr 1fr;gap:4px 28px}
+  .dist .brow .top b{font-size:17px}
+  svg.chart{width:100%;height:auto;display:block}
+  @media(max-width:860px){ .cmb-grid{grid-template-columns:1fr} .cmb-tiles{grid-template-columns:1fr 1fr} }
+  @media(max-width:560px){ .dist{grid-template-columns:1fr} }
+
   @media(max-width:860px){
     .tiles .wrap{grid-template-columns:1fr 1fr}.tile:nth-child(3){border-left:0}
   }
@@ -117,7 +139,7 @@
     <a class="brand" href="/"><span class="mk"></span>Stick.ai</a>
     <div class="nav-right">
       <a class="nav-link" href="/stats" aria-current="page">Stats</a>
-      <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download · v0.67</a>
+      <a class="nav-cta" href="https://github.com/ColeW32/playstick/releases/latest/download/Stick-Setup.exe">Download · v0.82</a>
     </div>
   </div>
 </nav>
@@ -174,6 +196,27 @@
           <tbody id="band-rows"></tbody>
         </table>
       </div>
+    </div>
+  </section>
+  <section class="blk" id="combine-blk" hidden>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Golf Combine</span>
+        <h2>72 shots. Full bag. One score.</h2>
+        <p>Scored 0–100 from 60 yards through driver. The markers show where a PGA Tour player and a scratch golfer would land — modelled from the same proximity table as practice; the driver line is an estimate.</p>
+      </div>
+      <div class="cmb-tiles">
+        <div class="tile"><div class="n" id="c-latest">—</div><div class="l">Latest</div></div>
+        <div class="tile"><div class="n" id="c-best">—</div><div class="l">Personal best</div></div>
+        <div class="tile"><div class="n" id="c-avg">—</div><div class="l">Average</div></div>
+        <div class="tile"><div class="n" id="c-count">—</div><div class="l">Combines</div></div>
+      </div>
+      <div class="cmb-legend" id="c-legend"></div>
+      <div class="cmb-grid">
+        <div class="card"><h3>Combine score over time</h3><div id="c-chart"></div></div>
+        <div class="card"><h3>Categories · latest (average)</h3><div id="c-cats"></div></div>
+      </div>
+      <div class="card" style="margin-top:28px"><h3>By distance · latest (average)</h3><div class="dist" id="c-dist"></div></div>
     </div>
   </section>
 </main>
@@ -262,6 +305,72 @@
     $('band-rows').innerHTML = html;
   }
 
+
+  // ---- Golf Combine ----
+  var TOUR = '#F0C24A', SCRATCH = '#E6EFEA';
+  function num(v){ v = Number(v); return isFinite(v) ? v : null; }
+  function scoreCol(v){ return v >= 85 ? 'var(--mint)' : v >= 70 ? '#66D9FF' : v >= 50 ? 'var(--amber)' : 'var(--red)'; }
+  function pick(list, name){ var r = null; (list||[]).forEach(function(x){ if(x && x.name === name) r = num(x.score); }); return r; }
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function tname(id){ return id === 'driver' ? 'Driver' : (Number(id)||0) + ' yd'; }
+
+  function bar(label, latest, avg, marks){
+    var h = '<div class="brow"><div class="top"><span>' + esc(label) + '</span><span>'
+          + (latest === null ? '<b style="color:var(--faint)">—</b>' : '<b style="color:' + scoreCol(latest) + '">' + latest.toFixed(0) + '</b>')
+          + (avg === null ? '' : '<span class="avg">(' + avg.toFixed(0) + ')</span>') + '</span></div><div class="bar">';
+    if(latest !== null) h += '<div class="f" style="width:' + Math.max(0,Math.min(100,latest)) + '%;background:' + scoreCol(latest) + '"></div>';
+    marks.forEach(function(m){ if(m.v !== null) h += '<div class="t" title="' + esc(m.n) + ' ' + m.v.toFixed(0) + '" style="left:' + Math.max(0,Math.min(100,m.v)) + '%;background:' + m.c + '"></div>'; });
+    return h + '</div></div>';
+  }
+
+  function chart(attempts, tour, scratch){
+    var W = 560, H = 220, px = 26, py = 18;
+    var vals = attempts.map(function(a){ return num(a.overall)||0; });
+    var lo = Math.min.apply(null, vals.concat([scratch||100])) - 5, hi = Math.max.apply(null, vals.concat([tour||0])) + 5;
+    lo = Math.max(0, Math.floor(lo/10)*10); hi = Math.min(100, Math.ceil(hi/10)*10); if(hi - lo < 20) hi = Math.min(100, lo + 20);
+    function Y(v){ return H - py - (v - lo) / (hi - lo) * (H - 2*py); }
+    function X(i){ return attempts.length === 1 ? W/2 : px + i * (W - 2*px) / (attempts.length - 1); }
+    var g = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Combine score over time">';
+    for(var v = lo; v <= hi; v += 10) g += '<line x1="0" x2="' + W + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="rgba(255,255,255,.06)"/><text x="4" y="' + (Y(v)-4) + '" fill="#556259" font-size="10" font-family="IBM Plex Mono">' + v + '</text>';
+    if(tour !== null) g += '<line x1="0" x2="' + W + '" y1="' + Y(tour) + '" y2="' + Y(tour) + '" stroke="' + TOUR + '" stroke-width="2" stroke-dasharray="6 5" opacity=".8"/>';
+    if(scratch !== null) g += '<line x1="0" x2="' + W + '" y1="' + Y(scratch) + '" y2="' + Y(scratch) + '" stroke="' + SCRATCH + '" stroke-width="2" stroke-dasharray="6 5" opacity=".6"/>';
+    if(vals.length > 1) g += '<polyline fill="none" stroke="#2FE08A" stroke-width="3" points="' + vals.map(function(v,i){ return X(i) + ',' + Y(v); }).join(' ') + '"/>';
+    vals.forEach(function(v,i){
+      var d = new Date((Number(attempts[i].ts)||0) * 1000).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+      g += '<circle cx="' + X(i) + '" cy="' + Y(v) + '" r="5.5" fill="' + (v >= 85 ? '#2FE08A' : v >= 70 ? '#66D9FF' : v >= 50 ? '#F0C24A' : '#F05A5F') + '"><title>' + esc(d) + ' · ' + v.toFixed(1) + '</title></circle>';
+    });
+    return g + '</svg>';
+  }
+
+  function renderCombine(c){
+    var attempts = (c && c.attempts) || [];
+    if(!attempts.length){ hide($('combine-blk')); return; }
+    attempts = attempts.slice().sort(function(a,b){ return (Number(a.ts)||0) - (Number(b.ts)||0); });
+    var last = attempts[attempts.length - 1];
+    var names = c.benchmarkNames || [], bm = c.benchmarks || [];
+    var tour = bm[0] || null, scr = bm[1] || null;
+    $('c-latest').textContent = (num(c.latest)||0).toFixed(1);
+    $('c-best').textContent = (num(c.best)||0).toFixed(1);
+    $('c-avg').textContent = (num(c.average)||0).toFixed(1);
+    $('c-count').textContent = attempts.length;
+    $('c-legend').innerHTML = (tour ? '<span><i style="background:' + TOUR + '"></i>' + esc(names[0]||'PGA Tour') + ' ' + (num(tour.overall)||0).toFixed(0) + '</span>' : '')
+                            + (scr ? '<span><i style="background:' + SCRATCH + '"></i>' + esc(names[1]||'Scratch') + ' ' + (num(scr.overall)||0).toFixed(0) + '</span>' : '')
+                            + '<span>modelled</span>';
+    $('c-chart').innerHTML = chart(attempts, tour ? num(tour.overall) : null, scr ? num(scr.overall) : null);
+
+    function avgOf(get){ var s = 0, n = 0; attempts.forEach(function(a){ var v = get(a); if(v !== null){ s += v; n++; } }); return n ? s/n : null; }
+    function marks(get){ return [{n:names[0]||'PGA Tour', v: tour ? get(tour) : null, c: TOUR}, {n:names[1]||'Scratch', v: scr ? get(scr) : null, c: SCRATCH}]; }
+    var cats = (last.categories||[]).map(function(x){ return x.name; });
+    $('c-cats').innerHTML = cats.map(function(cat){
+      return bar(cat, pick(last.categories, cat), avgOf(function(a){ return pick(a.categories, cat); }), marks(function(b){ return pick(b.categories, cat); }));
+    }).join('');
+    var ids = (last.targets||[]).map(function(x){ return x.name; });
+    $('c-dist').innerHTML = ids.map(function(id){
+      return bar(tname(id), pick(last.targets, id), avgOf(function(a){ return pick(a.targets, id); }), marks(function(b){ return pick(b.targets, id); }));
+    }).join('');
+    show($('combine-blk'));
+  }
+
   function render(d){
     // Performance Center only. The app also uploads on-course round data; this page
     // deliberately ignores it.
@@ -296,6 +405,8 @@
     var bands = practice.bands || [];
     if(bands.length){ table(bands, practice.weakestBand); show($('practice-blk')); }
     else { hide($('practice-blk')); }
+
+    renderCombine(d.combine);
 
     hide($('loading'));
     show($('content'));
